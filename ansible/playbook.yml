@@ -1,0 +1,11 @@
+---
+- name: Install software on webservers
+  hosts: web_servers
+  become: yes
+  roles:
+    - python
+    - java
+    - apache
+    - tomcat
+    - notepad
+    - helloworlpy

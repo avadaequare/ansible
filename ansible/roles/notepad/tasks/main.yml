@@ -1,0 +1,7 @@
+---
+- name: Install Notepadqq text editor
+  apt:
+    name: notepadqq
+    state: present
+    update_cache: yes
+

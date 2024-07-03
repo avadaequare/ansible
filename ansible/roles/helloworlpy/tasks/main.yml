@@ -1,0 +1,63 @@
+---
+- name: Install required packages
+  apt:
+    name: 
+      - python3-venv
+    state: present
+
+- name: Create project directory
+  file:
+    path: /opt/hello_world
+    state: directory
+
+- name: Copy Flask app to the server
+  copy:
+    src: app.py
+    dest: /opt/hello_world/app.py
+
+- name: Create a virtual environment
+  command: python3 -m venv /opt/hello_world/venv
+  args:
+    creates: /opt/hello_world/venv/bin/activate
+
+- name: Install Flask in the virtual environment
+  command: /opt/hello_world/venv/bin/pip install Flask
+- name: Ensure the Gunicorn directory exists
+  file:
+    path: /opt/gunicorn
+    state: directory
+
+- name: Create a Python virtual environment
+  command: python3 -m venv /opt/gunicorn/venv
+  args:
+    creates: /opt/gunicorn/venv/bin/activate
+
+- name: Install Gunicorn in the virtual environment
+  pip:
+    name: gunicorn
+    virtualenv: /opt/gunicorn/venv
+
+- name: Create a systemd service file for the Flask app
+  copy:
+    dest: /etc/systemd/system/hello_world.service
+    content: |
+      [Unit]
+      Description=Gunicorn instance to serve hello world app
+      After=network.target
+
+      [Service]
+      User=www-data
+      Group=www-data
+      WorkingDirectory=/opt/hello_world
+      Environment="PATH=/opt/hello_world/venv/bin"
+      ExecStart=/opt/hello_world/venv/bin/gunicorn --workers 3 --bind 0.0.0.0:5000 app:app
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Start and enable the Flask app service
+  systemd:
+    name: hello_world
+    state: started
+    enabled: yes
+

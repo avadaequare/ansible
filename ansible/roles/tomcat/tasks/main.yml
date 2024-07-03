@@ -1,0 +1,30 @@
+---
+- name: Update package
+  command: apt update
+
+- name: Install tar
+  become: yes
+  apt:
+    name: tar
+    state: present
+ 
+- name: Download Apache Tomcat
+  get_url: 
+    url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.89/bin/apache-tomcat-9.0.89.tar.gz
+    dest: /root
+ 
+- name: Extract apache file
+  command: tar -zxvf apache-tomcat-9.0.89.tar.gz
+ 
+- name: Executing multiple sed commands
+  shell: | 
+    sed -i '56  a\<role rolename="manager-gui"/>' /root/apache-tomcat-9.0.89/conf/tomcat-users.xml
+    sed -i '57  a\<role rolename="manager-script"/>' /root/apache-tomcat-9.0.89/conf/tomcat-users.xml
+    sed -i '58  a\<user username="tomcat" password="tomcat" roles="manager-gui, manager-script"/>' /root/apache-tomcat-9.0.89/conf/tomcat-users.xml
+    sed -i '59  a\</tomcat-users>' /root/apache-tomcat-9.0.89/conf/tomcat-users.xml
+    sed -i '56d' /root/apache-tomcat-9.0.89/conf/tomcat-users.xml
+    sed -i '21d' /root/apache-tomcat-9.0.89/webapps/manager/META-INF/context.xml
+    sed -i '22d'  /root/apache-tomcat-9.0.89/webapps/manager/META-INF/context.xml
+ 
+- name: Starting apache
+  command: sh /root/apache-tomcat-9.0.89/bin/startup.sh
